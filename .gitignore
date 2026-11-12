@@ -1,0 +1,16 @@
+# Visual Studio / MSBuild
+.vs/
+**/bin/
+**/obj/
+**/dist/
+*.user
+*.suo
+*.pdb
+*.cache
+*.vsidx
+TestResults/
+Build.Local.props
+Dim.addin
+*.local.props
+BuildInfo.json
+SHA256.txt
