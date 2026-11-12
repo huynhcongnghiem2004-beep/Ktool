@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Copy this file to Build.Local.props only if Autodesk is installed elsewhere. -->
+    <RevitInstallDir>C:\Program Files\Autodesk\Revit 2024\</RevitInstallDir>
+    <AutoCADDir>C:\Program Files\Autodesk\AutoCAD 2023\</AutoCADDir>
+  </PropertyGroup>
+</Project>

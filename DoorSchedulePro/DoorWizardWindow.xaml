@@ -1,0 +1,647 @@
+﻿<Window x:Class="DoorDetailLegend.DoorWizardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KTool - Triển khai chi tiết cửa"
+        Width="780" Height="740" MinWidth="700" MinHeight="600"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="White" FontFamily="Segoe UI" FontSize="12">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="Yellow" Color="#A7C66A"/>
+        <SolidColorBrush x:Key="YellowHover" Color="#C3DA97"/>
+        <SolidColorBrush x:Key="PanelGray" Color="#F0F0F0"/>
+        <SolidColorBrush x:Key="LineGray" Color="#DADADA"/>
+        <SolidColorBrush x:Key="Blue" Color="#46602D"/>
+        <SolidColorBrush x:Key="Amber" Color="#5E7837"/>
+
+        <!-- Nút vàng lớn -->
+        <Style x:Key="YellowButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource Yellow}"/>
+            <Setter Property="Foreground" Value="#222222"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{StaticResource YellowHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Background" Value="#E3E3E3"/>
+                                <Setter Property="Foreground" Value="#9A9A9A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Nút vàng nhỏ -->
+        <Style x:Key="SmallYellowButton" TargetType="Button" BasedOn="{StaticResource YellowButton}">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+
+        <!-- Nút tròn có mũi tên giữa các danh sách -->
+        <Style x:Key="RoundIconButton" TargetType="Button">
+            <Setter Property="Width" Value="34"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Margin" Value="0,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse x:Name="outer" Fill="{StaticResource Yellow}"/>
+                            <Ellipse Width="22" Height="22" Fill="#111111"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              TextElement.Foreground="White" TextElement.FontSize="9"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="outer" Property="Fill" Value="{StaticResource YellowHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Tiêu đề từng bước ở trên cùng -->
+        <Style x:Key="StepRadio" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="#555555"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bd" BorderThickness="0,0,0,2" BorderBrush="Transparent"
+                                Padding="8,16" Background="Transparent">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                                           FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <Grid Width="22" Height="22" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <Ellipse x:Name="ring" Stroke="{StaticResource Yellow}" StrokeThickness="2"
+                                             Visibility="Collapsed"/>
+                                    <TextBlock Text="&#9654;" Foreground="{StaticResource Yellow}" FontSize="10"
+                                               Margin="2,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#222222"/>
+                                <Setter TargetName="ring" Property="Visibility" Value="Visible"/>
+                                <Setter Property="Foreground" Value="#111111"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Tiêu đề từng nhóm ở bước 3 -->
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#222222"/>
+        </Style>
+
+        <!-- Nhãn nhỏ phía trên ô nhập -->
+        <Style x:Key="FloatLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="{StaticResource Amber}"/>
+            <Setter Property="Margin" Value="0,0,0,1"/>
+        </Style>
+
+        <!-- Ô nhập chỉ có đường kẻ chân; Tag = chữ gợi ý khi để trống -->
+        <Style x:Key="LineText" TargetType="TextBox">
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#888888"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Grid>
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,1"/>
+                            <TextBlock x:Name="hint" Foreground="#9A9A9A" VerticalAlignment="Center"
+                                       IsHitTestVisible="False" Visibility="Collapsed"
+                                       Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"/>
+                            <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" Margin="0,0,0,1"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="hint" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource Yellow}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Hộp chọn chỉ có đường kẻ chân -->
+        <Style x:Key="LineCombo" TargetType="ComboBox">
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#888888"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Focusable="False" ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent"
+                                                BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                BorderThickness="0,0,0,1">
+                                            <Path HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0"
+                                                  Data="M0,0 L8,0 L4,5 Z" Fill="#555555"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter IsHitTestVisible="False" Margin="0,0,22,1"
+                                              VerticalAlignment="Center" HorizontalAlignment="Left"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"/>
+                            <Popup x:Name="PART_Popup" Placement="Bottom" Focusable="False"
+                                   AllowsTransparency="True" PopupAnimation="Slide"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}">
+                                <Border MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                        Background="White" BorderBrush="#BBBBBB" BorderThickness="1">
+                                    <ScrollViewer>
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ListRowStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="6,8"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineGray}"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="12" Background="#F5F7F1">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Thanh 3 bước -->
+        <Border Grid.Row="0" Background="#F3F3F3" CornerRadius="3">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.25"/>
+            </Border.Effect>
+            <UniformGrid Columns="3">
+                <RadioButton x:Name="rbDoors" GroupName="step" Style="{StaticResource StepRadio}"
+                             Content="Chọn cửa triển khai" Checked="OnStepChecked"/>
+                <RadioButton x:Name="rbParams" GroupName="step" Style="{StaticResource StepRadio}"
+                             Content="Chọn Parameters" Checked="OnStepChecked"/>
+                <RadioButton x:Name="rbSetup" GroupName="step" Style="{StaticResource StepRadio}"
+                             Content="Thiết lập triển khai" Checked="OnStepChecked"/>
+            </UniformGrid>
+        </Border>
+
+        <!-- Nội dung 3 bước -->
+        <Grid Grid.Row="1" Margin="0,12,0,12">
+
+            <!-- BƯỚC 1: chọn cửa -->
+            <Grid x:Name="panelDoors">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                    <CheckBox x:Name="chkWindow" DockPanel.Dock="Right" Content="Cửa sổ" IsChecked="True"
+                              VerticalAlignment="Center" Margin="12,0,0,0"
+                              Checked="OnDoorFilterChanged" Unchecked="OnDoorFilterChanged"/>
+                    <CheckBox x:Name="chkDoor" DockPanel.Dock="Right" Content="Cửa đi" IsChecked="True"
+                              VerticalAlignment="Center" Margin="12,0,0,0"
+                              Checked="OnDoorFilterChanged" Unchecked="OnDoorFilterChanged"/>
+                    <Border Background="{StaticResource PanelGray}" Height="32">
+                        <Grid>
+                            <TextBox x:Name="txtSearchDoor" Background="Transparent" BorderThickness="0"
+                                     VerticalContentAlignment="Center" Padding="8,0"
+                                     TextChanged="OnDoorSearchChanged"/>
+                            <TextBlock x:Name="hintDoor" Text="Tìm cửa (mã hiệu, Family : Type, tầng...)"
+                                       Foreground="#888888" Margin="10,0,0,0" VerticalAlignment="Center"
+                                       IsHitTestVisible="False"/>
+                        </Grid>
+                    </Border>
+                </DockPanel>
+
+                <ListView x:Name="lvDoors" Grid.Row="1" Background="{StaticResource PanelGray}"
+                          BorderThickness="0" SelectionMode="Extended"
+                          MouseDoubleClick="OnDoorDoubleClick">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Width="40">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Mã hiệu" Width="80" DisplayMemberBinding="{Binding Mark}"/>
+                            <GridViewColumn Header="Family : Type" Width="290" DisplayMemberBinding="{Binding TypeName}"/>
+                            <GridViewColumn Header="Tầng" Width="90" DisplayMemberBinding="{Binding Level}"/>
+                            <GridViewColumn Header="Kích thước (mm)" Width="110" DisplayMemberBinding="{Binding Size}"/>
+                            <GridViewColumn Header="Loại" Width="70" DisplayMemberBinding="{Binding Kind}"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Content="Chọn tất cả đang hiện" Style="{StaticResource SmallYellowButton}"
+                            Click="OnSelectAllDoors"/>
+                    <Button Content="Bỏ chọn tất cả" Style="{StaticResource SmallYellowButton}"
+                            Click="OnClearDoors"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- BƯỚC 2: chọn Parameters -->
+            <Grid x:Name="panelParams" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="64"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Background="{StaticResource PanelGray}" Height="32" Margin="0,0,0,2">
+                        <Grid>
+                            <TextBox x:Name="txtSearchParam" Background="Transparent" BorderThickness="0"
+                                     VerticalContentAlignment="Center" Padding="8,0,28,0"
+                                     TextChanged="OnParamSearchChanged"/>
+                            <TextBlock x:Name="hintParam" Text="Tìm Parameter..." Foreground="#888888"
+                                       Margin="10,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                            <TextBlock Text="&#9906;" Foreground="#888888" HorizontalAlignment="Right"
+                                       VerticalAlignment="Center" Margin="0,0,10,0" IsHitTestVisible="False"/>
+                        </Grid>
+                    </Border>
+                    <ListBox x:Name="lbParams" Grid.Row="1" Background="{StaticResource PanelGray}"
+                             BorderThickness="0" SelectionMode="Extended"
+                             ItemContainerStyle="{StaticResource ListRowStyle}"
+                             MouseDoubleClick="OnParamDoubleClick"/>
+                </Grid>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Button Style="{StaticResource RoundIconButton}" Content="&#9654;" ToolTip="Thêm vào danh sách"
+                            Click="OnAddParams"/>
+                    <Button Style="{StaticResource RoundIconButton}" Content="&#9664;" ToolTip="Bỏ khỏi danh sách"
+                            Click="OnRemoveParams"/>
+                    <Button Style="{StaticResource RoundIconButton}" Content="&#9650;" ToolTip="Lên"
+                            Click="OnMoveUp"/>
+                    <Button Style="{StaticResource RoundIconButton}" Content="&#9660;" ToolTip="Xuống"
+                            Click="OnMoveDown"/>
+                </StackPanel>
+
+                <DataGrid x:Name="dgParams" Grid.Column="2" Background="{StaticResource PanelGray}"
+                          BorderThickness="0" AutoGenerateColumns="False" CanUserAddRows="False"
+                          CanUserDeleteRows="False" CanUserSortColumns="False" CanUserReorderColumns="False"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="{StaticResource LineGray}"
+                          RowBackground="Transparent" SelectionMode="Extended" RowHeaderWidth="0">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="#666666"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Padding" Value="4,8"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Tên Parameters" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>
+                        <DataGridTextColumn Header="Việt hóa" Binding="{Binding Label, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+
+            <!-- BƯỚC 3: thiết lập triển khai -->
+            <Grid x:Name="panelSetup" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.15*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Trái: hình minh họa bố cục Legend; khi đang chạy đổi sang log -->
+                <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource LineGray}"
+                        BorderThickness="1" CornerRadius="3">
+                    <Grid>
+                        <Viewbox x:Name="previewHost" Stretch="Uniform" Margin="12">
+                            <Canvas Width="340" Height="510">
+                                <Canvas.Resources>
+                                    <Style TargetType="Line">
+                                        <Setter Property="Stroke" Value="#222222"/>
+                                        <Setter Property="StrokeThickness" Value="1"/>
+                                    </Style>
+                                    <Style TargetType="Rectangle">
+                                        <Setter Property="Stroke" Value="#222222"/>
+                                        <Setter Property="StrokeThickness" Value="1"/>
+                                        <Setter Property="Fill" Value="Transparent"/>
+                                    </Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Stroke" Value="#222222"/>
+                                        <Setter Property="StrokeThickness" Value="1"/>
+                                    </Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#222222"/>
+                                    </Style>
+                                </Canvas.Resources>
+
+                                <!-- Khung ngoài (Tạo khung) -->
+                                <Rectangle x:Name="rectFrame" Canvas.Left="2" Canvas.Top="2" Width="336" Height="506"
+                                           StrokeThickness="1.5" Visibility="Collapsed"/>
+
+                                <!-- Xem trước liên kết trực tiếp với thiết lập -->
+                                <StackPanel x:Name="previewUpper" Canvas.Left="20" Canvas.Top="0" Width="300">
+                                    <TextBlock x:Name="previewUpperName" FontSize="9" TextTrimming="CharacterEllipsis"/>
+                                    <Image x:Name="previewUpperImage" Height="36" Stretch="Uniform"/>
+                                    <Border x:Name="previewUpperFields" BorderBrush="#222222" BorderThickness="1" Padding="3">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="85"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <TextBlock x:Name="previewField1" FontSize="12" FontWeight="Bold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock x:Name="previewField2" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock x:Name="previewField3" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Mặt đứng (lật khi chọn Elevation: Back) -->
+                                <Canvas x:Name="cvElev" Width="340" Height="230" RenderTransformOrigin="0.5,0.5">
+                                    <Canvas.RenderTransform>
+                                        <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                    </Canvas.RenderTransform>
+                                    <Rectangle Canvas.Left="140" Canvas.Top="95" Width="60" Height="120" StrokeThickness="1.5"/>
+                                    <Rectangle Canvas.Left="146" Canvas.Top="101" Width="48" Height="114"/>
+                                    <Line X1="194" Y1="101" X2="146" Y2="158"/>
+                                    <Line X1="194" Y1="215" X2="146" Y2="158"/>
+                                    <Line X1="150" Y1="170" X2="159" Y2="170" StrokeThickness="2.5"/>
+                                </Canvas>
+                                <Line X1="15" Y1="215" X2="325" Y2="215" StrokeThickness="1.5"/>
+                                <Canvas x:Name="dimElev" Width="340" Height="230">
+                                    <Line X1="205" Y1="95" X2="238" Y2="95"/>
+                                    <Line X1="205" Y1="215" X2="238" Y2="215"/>
+                                    <Line X1="232" Y1="90" X2="232" Y2="220"/>
+                                    <Line X1="228" Y1="99" X2="236" Y2="91"/>
+                                    <Line X1="228" Y1="219" X2="236" Y2="211"/>
+                                    <TextBlock x:Name="previewHeight" Canvas.Left="236" Canvas.Top="166" Text="2200" FontSize="9">
+                                        <TextBlock.RenderTransform>
+                                            <RotateTransform Angle="-90"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </Canvas>
+
+                                <!-- Mặt bằng -->
+                                <Canvas x:Name="cvPlan" Width="340" Height="400">
+                                    <Rectangle Canvas.Left="65" Canvas.Top="300" Width="75" Height="14"/>
+                                    <Rectangle Canvas.Left="200" Canvas.Top="300" Width="75" Height="14"/>
+                                    <Line X1="200" Y1="300" X2="200" Y2="240" StrokeThickness="1.5"/>
+                                    <Path Data="M 200,240 A 60,60 0 0 0 140,300" StrokeDashArray="3,2"/>
+                                    <Canvas x:Name="dimPlan" Width="340" Height="400">
+                                        <Line X1="140" Y1="318" X2="140" Y2="352"/>
+                                        <Line X1="200" Y1="318" X2="200" Y2="352"/>
+                                        <Line X1="136" Y1="346" X2="204" Y2="346"/>
+                                        <Line X1="136" Y1="350" X2="144" Y2="342"/>
+                                        <Line X1="196" Y1="350" X2="204" Y2="342"/>
+                                        <TextBlock x:Name="previewWidth" Canvas.Left="161" Canvas.Top="349" Text="900" FontSize="9"/>
+                                    </Canvas>
+                                </Canvas>
+
+                                <StackPanel x:Name="previewLower" Canvas.Left="20" Canvas.Top="390" Width="300">
+                                    <TextBlock x:Name="previewLowerName" FontSize="9" TextTrimming="CharacterEllipsis"/>
+                                    <Image x:Name="previewLowerImage" Height="75" Stretch="Uniform"/>
+                                    <Border x:Name="previewLowerFields" BorderBrush="#222222" BorderThickness="1">
+                                        <ScrollViewer MaxHeight="65" VerticalScrollBarVisibility="Auto">
+                                            <StackPanel x:Name="previewLowerRows"/>
+                                        </ScrollViewer>
+                                    </Border>
+                                </StackPanel>
+                            </Canvas>
+                        </Viewbox>
+
+                        <TextBox x:Name="txtLog" Visibility="Collapsed" IsReadOnly="True" Background="#FAFAFA"
+                                 BorderThickness="0" Margin="0,38,0,0" FontFamily="Consolas" FontSize="12"
+                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                 TextWrapping="NoWrap" Padding="8"/>
+                        <Button x:Name="btnLog" Content="Log" Click="OnToggleLog"
+                                Style="{StaticResource SmallYellowButton}" Width="80" Height="24"
+                                HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"
+                                ToolTip="Xem log / xem hình minh họa"/>
+                    </Grid>
+                </Border>
+
+                <!-- Phải: các nhóm thiết lập -->
+                <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0,0,6,0">
+
+                        <!-- Tag trên -->
+                        <Border BorderBrush="{StaticResource LineGray}" BorderThickness="1" Background="White" Margin="0,0,0,10">
+                            <StackPanel>
+                                <Border Background="{StaticResource Yellow}" Padding="12,8">
+                                    <TextBlock Text="Tag trên" Style="{StaticResource SectionTitle}"/>
+                                </Border>
+                                <StackPanel Margin="14,8,14,12">
+                                    <TextBlock Text="Chọn loại Tag trên" Style="{StaticResource FloatLabel}"/>
+                                    <ComboBox x:Name="cboUpperTag" Style="{StaticResource LineCombo}" DisplayMemberPath="Name"/>
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="txtPre1" Style="{StaticResource LineText}" Tag="Tiền tố"
+                                         VerticalAlignment="Bottom"/>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Chọn Parameter 1" Style="{StaticResource FloatLabel}"/>
+                                    <ComboBox x:Name="cboParam1" Style="{StaticResource LineCombo}"/>
+                                    <TextBlock Text="Ghi vào parameter của Tag" Style="{StaticResource FloatLabel}" Margin="0,5,0,0"/>
+                                    <ComboBox x:Name="cboTarget1" IsEditable="True" MinHeight="26" ToolTip="Chọn instance parameter hiển thị ở dòng tương ứng trong family Tag."/>
+                                </StackPanel>
+                            </Grid>
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="txtPre2" Style="{StaticResource LineText}" Tag="Tiền tố"
+                                         VerticalAlignment="Bottom"/>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Chọn Parameter 2" Style="{StaticResource FloatLabel}"/>
+                                    <ComboBox x:Name="cboParam2" Style="{StaticResource LineCombo}"/>
+                                    <TextBlock Text="Ghi vào parameter của Tag" Style="{StaticResource FloatLabel}" Margin="0,5,0,0"/>
+                                    <ComboBox x:Name="cboTarget2" IsEditable="True" MinHeight="26" ToolTip="Chọn instance parameter hiển thị ở dòng tương ứng trong family Tag."/>
+                                </StackPanel>
+                            </Grid>
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="txtPre3" Style="{StaticResource LineText}" Tag="Tiền tố"
+                                         VerticalAlignment="Bottom"/>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Chọn Parameter 3" Style="{StaticResource FloatLabel}"/>
+                                    <ComboBox x:Name="cboParam3" Style="{StaticResource LineCombo}"/>
+                                    <TextBlock Text="Ghi vào parameter của Tag" Style="{StaticResource FloatLabel}" Margin="0,5,0,0"/>
+                                    <ComboBox x:Name="cboTarget3" IsEditable="True" MinHeight="26" ToolTip="Chọn instance parameter hiển thị ở dòng tương ứng trong family Tag."/>
+                                </StackPanel>
+                            </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Tag dưới -->
+                        <Border BorderBrush="{StaticResource LineGray}" BorderThickness="1" Background="White" Margin="0,0,0,10">
+                            <StackPanel>
+                                <Border Background="{StaticResource Yellow}" Padding="12,8">
+                                    <TextBlock Text="Tag dưới" Style="{StaticResource SectionTitle}"/>
+                                </Border>
+                                <StackPanel Margin="14,8,14,12">
+                                    <TextBlock Text="Chọn loại Tag dưới" Style="{StaticResource FloatLabel}"/>
+                                    <ComboBox x:Name="cboLowerTag" Style="{StaticResource LineCombo}" DisplayMemberPath="Name"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Hướng Mặt đứng -->
+                        <Border BorderBrush="{StaticResource LineGray}" BorderThickness="1" Background="White" Margin="0,0,0,10">
+                            <StackPanel>
+                                <Border Background="{StaticResource Yellow}" Padding="12,8">
+                                    <TextBlock Text="Hướng Mặt đứng" Style="{StaticResource SectionTitle}"/>
+                                </Border>
+                                <StackPanel Orientation="Horizontal" Margin="14,12,14,14">
+                                    <RadioButton x:Name="rbFront" GroupName="elev" Content="Elevation: Front"
+                                                 IsChecked="True" Margin="0,0,36,0" Checked="OnPreviewChanged"/>
+                                    <RadioButton x:Name="rbBack" GroupName="elev" Content="Elevation: Back"
+                                                 Checked="OnPreviewChanged"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Thiết lập khác -->
+                        <Border BorderBrush="{StaticResource LineGray}" BorderThickness="1" Background="White">
+                            <StackPanel>
+                                <Border Background="{StaticResource Yellow}" Padding="12,8">
+                                    <TextBlock Text="Thiết lập khác" Style="{StaticResource SectionTitle}"/>
+                                </Border>
+                                <StackPanel Margin="14,12,14,12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkPlan" Content="Mặt bằng" IsChecked="True" Margin="0,0,24,0"
+                                                  Checked="OnPreviewChanged" Unchecked="OnPreviewChanged"/>
+                                        <CheckBox x:Name="chkDims" Content="Dim kích thước" IsChecked="True" Margin="0,0,24,0"
+                                                  Checked="OnPreviewChanged" Unchecked="OnPreviewChanged"/>
+                                        <CheckBox x:Name="chkFrame" Content="Tạo khung"
+                                                  Checked="OnPreviewChanged" Unchecked="OnPreviewChanged"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Tỷ lệ chi tiết — 1 :" Style="{StaticResource FloatLabel}" Margin="0,10,0,0"/>
+                                    <TextBox x:Name="txtViewScale" Text="20" Style="{StaticResource LineText}"/>
+                                    <TextBlock Text="Chọn loại Dim" Style="{StaticResource FloatLabel}" Margin="0,12,0,1"/>
+                                    <ComboBox x:Name="cboDimType" Style="{StaticResource LineCombo}" DisplayMemberPath="Name"
+                                              IsEnabled="{Binding IsChecked, ElementName=chkDims}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        <Border BorderBrush="{StaticResource LineGray}" BorderThickness="1" Background="White" Margin="0,10,0,0">
+                            <StackPanel>
+                                <Border Background="{StaticResource Yellow}" Padding="12,8">
+                                    <CheckBox x:Name="chkPlaceSheet" IsChecked="True" Content="Tự đặt chi tiết cửa vào Sheet" FontWeight="Bold"/>
+                                </Border>
+                                <StackPanel Margin="14,10" IsEnabled="{Binding IsChecked, ElementName=chkPlaceSheet}">
+                                    <TextBlock Text="Sheet đích" Style="{StaticResource FloatLabel}"/>
+                                    <ComboBox x:Name="cboSheet" DisplayMemberPath="Name" Style="{StaticResource LineCombo}"/>
+                                    <TextBlock Text="Khung tên cho Sheet mới / Sheet tiếp theo" Style="{StaticResource FloatLabel}" Margin="0,8,0,0"/>
+                                    <ComboBox x:Name="cboTitleBlock" DisplayMemberPath="Name" Style="{StaticResource LineCombo}"/>
+                                    <TextBlock Text="Tiền tố số Sheet" Style="{StaticResource FloatLabel}" Margin="0,8,0,0"/>
+                                    <TextBox x:Name="txtSheetPrefix" Text="CT-CUA" Style="{StaticResource LineText}"/>
+                                    <TextBlock Text="Tên Sheet" Style="{StaticResource FloatLabel}" Margin="0,8,0,0"/>
+                                    <TextBox x:Name="txtSheetName" Text="CHI TIẾT CỬA" Style="{StaticResource LineText}"/>
+                                    <Grid Margin="0,8,0,8"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,8,0"><TextBlock Text="Lề giấy (mm)" Style="{StaticResource FloatLabel}"/><TextBox x:Name="txtSheetMargin" Text="20" Style="{StaticResource LineText}"/></StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Chừa bên phải (mm)" Style="{StaticResource FloatLabel}"/><TextBox x:Name="txtSheetReserve" Text="50" Style="{StaticResource LineText}"/></StackPanel>
+                                        <StackPanel Grid.Column="2"><TextBlock Text="Khoảng cách (mm)" Style="{StaticResource FloatLabel}"/><TextBox x:Name="txtSheetGap" Text="10" Style="{StaticResource LineText}"/></StackPanel>
+                                    </Grid>
+                                    <CheckBox x:Name="chkAutoFitSheet" Content="Tự chọn tỷ lệ vừa khổ giấy khi chi tiết quá lớn" IsChecked="True" Margin="0,0,0,8"/>
+                                    <CheckBox x:Name="chkOverflowSheets" Content="Tạo Sheet tiếp theo khi hết chỗ" IsChecked="True"/>
+                                    <TextBlock Text="Đo cả viewport và tiêu đề; chừa vị trí các view có sẵn. Tắt tự chọn tỷ lệ nếu cần giữ đúng tỷ lệ nhập." TextWrapping="Wrap" Foreground="#5E7837" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+
+        <!-- Thanh dưới: tiến độ và nút -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="White" CornerRadius="3" Padding="10,8" Margin="0,0,10,0">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.25"/>
+                </Border.Effect>
+                <StackPanel VerticalAlignment="Center">
+                    <Grid>
+                        <TextBlock x:Name="lblSummary" Foreground="{StaticResource Blue}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="lblPercent" Foreground="{StaticResource Blue}" Text="(0/0) 0%"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <ProgressBar x:Name="pbar" Height="4" Margin="0,6,0,0" BorderThickness="0"
+                                 Background="#E6E6E6" Foreground="{StaticResource Yellow}"
+                                 Minimum="0" Maximum="1" Value="0"/>
+                </StackPanel>
+            </Border>
+
+            <Button x:Name="btnGear" Grid.Column="1" Style="{StaticResource YellowButton}" Width="70"
+                    Content="&#9881;" FontSize="20" Margin="0,0,10,0" ToolTip="Thiết lập triển khai"
+                    Click="OnGear"/>
+            <Button x:Name="btnStop" Grid.Column="2" Style="{StaticResource YellowButton}" Width="110"
+                    Content="Dừng" Margin="0,0,10,0" IsEnabled="False" Click="OnStop"/>
+            <Button x:Name="btnStart" Grid.Column="3" Style="{StaticResource YellowButton}" Width="130"
+                    Content="Bắt đầu tạo" Click="OnStart"/>
+        </Grid>
+    </Grid>
+</Window>

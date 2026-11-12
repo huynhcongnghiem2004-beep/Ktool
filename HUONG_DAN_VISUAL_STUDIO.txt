@@ -1,0 +1,21 @@
+BUILD VISUAL STUDIO - DIM3-R2-20261030
+Mở đúng Dim.sln trong thư mục này, Release | x64.
+ĐÓNG REVIT trước khi Build Solution.
+Build mặc định hiện tạo DLL, cập nhật dist và đăng ký Dim.addin đúng DLL vừa build.
+Nếu Revit vẫn mở, bước nạp báo lỗi rõ ràng; không xem chỉ dòng compile succeeded là đã nạp.
+Muốn chỉ biên dịch: dotnet build Dim.sln -c Release -p:Platform=x64 -p:SkipRevitDeploy=true.
+Muốn dùng script: Build_Release.ps1 -Install.
+Không cần chép DLL thủ công và không dùng solution/project cũ trên máy khách.
+
+DẤU HIỆU ĐÚNG BẢN
+Cửa sổ triển khai thang phải có DIM3-R2-20261030 ở tiêu đề.
+Báo cáo kết quả > Chi tiết có DLL, MVID, tùy chọn Dim và số lớp từng phía 0/3..3/3.
+Nếu không thấy mã này: máy vẫn nạp DLL cũ hoặc chưa khởi động lại Revit.
+Nếu thấy mã này nhưng thiếu lớp: gửi phần Chi tiết để kiểm tra reference của mô hình.
+Hai lớp Dim ô thang/tổng mặt bằng cần tường bao đối diện thật tại cao độ cắt.
+Không tạo lớp giả hoặc lặp cùng một số đo để đủ số lượng.
+
+Máy khác cần Visual Studio 2022, .NET desktop development, .NET Framework 4.8
+Targeting Pack và Revit 2024. Chép toàn bộ folder lên D:\SDK_HD.
+Nếu Autodesk cài nơi khác: tạo Build.Local.props từ file example và chỉnh đường dẫn API.
+Project KTool.DwgMerge không build mặc định; build riêng cần AutoCAD 2023 API.

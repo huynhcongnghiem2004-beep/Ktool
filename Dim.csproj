@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <SkipRevitDeploy Condition="'$(SkipRevitDeploy)' == ''">false</SkipRevitDeploy>
+    <AssemblyName>Dim</AssemblyName>
+    <RootNamespace>SDK_HD.Dim</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>x64</Platforms>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <UseWPF>true</UseWPF>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <RevitInstallDir Condition="'$(RevitInstallDir)' == ''">$(ProgramW6432)\Autodesk\Revit 2024\</RevitInstallDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- KIỂM TRA: App.cs vẫn dùng DrawWireCommand và CreateWireStylesCommand.
+         Hai class này phải được định nghĩa ở file .cs khác, nếu không build sẽ lỗi. -->
+    <Compile Remove="DrawWireCommand.cs;WireStyleCommands.cs" />
+    <Compile Remove="DwgExportHelper\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- UseWPF đã tự thêm PresentationFramework, PresentationCore, WindowsBase, System.Xaml -->
+    <Reference Include="RevitAPI">
+      <HintPath>$(RevitInstallDir)RevitAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>$(RevitInstallDir)RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitAPIIFC">
+      <HintPath>$(RevitInstallDir)RevitAPIIFC.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\*.png" />
+    <None Remove="DoorSchedulePro\DoorWizardWindow.xaml" />
+    <None Remove="PaintProWindow.xaml" />
+    <None Remove="DoorWizardWindow.xaml" />
+    <None Remove="Resources\Dim.ico" />
+    <EmbeddedResource Include="Resources\*.png" />
+    <EmbeddedResource Include="Resources\Dim.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="DoorSchedulePro\DoorWizardWindow.xaml" />
+    <Page Include="PaintProWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <Target Name="DeployToRevit" AfterTargets="Build" Condition="'$(SkipRevitDeploy)' != 'true' and '$(DesignTimeBuild)' != 'true'">
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\StageAndInstall.ps1&quot; -BuiltDll &quot;$(TargetPath)&quot; -BuiltPdb &quot;$(TargetDir)$(TargetName).pdb&quot;" />
+  </Target>
+</Project>
