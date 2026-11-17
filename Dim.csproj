@@ -37,13 +37,11 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Resources\*.png" />
+    <None Remove="Resources\KTool_*.png" />
+    <EmbeddedResource Include="Resources\KTool_*.png" />
     <None Remove="DoorSchedulePro\DoorWizardWindow.xaml" />
     <None Remove="PaintProWindow.xaml" />
     <None Remove="DoorWizardWindow.xaml" />
-    <None Remove="Resources\Dim.ico" />
-    <EmbeddedResource Include="Resources\*.png" />
-    <EmbeddedResource Include="Resources\Dim.ico" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="DoorSchedulePro\DoorWizardWindow.xaml" />
