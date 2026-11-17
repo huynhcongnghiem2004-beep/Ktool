@@ -17,7 +17,11 @@ $manifest=Join-Path $addinDir 'Dim.addin'
 $id='3f8a2c64-9b1e-4d57-a6c3-7e0d5b12f948'
 foreach($dir in @($addinDir,(Join-Path $env:ProgramData 'Autodesk\Revit\Addins\2024'))){
  foreach($file in Get-ChildItem -LiteralPath $dir -Filter *.addin -ErrorAction SilentlyContinue){
-  [xml]$other=Get-Content -LiteralPath $file.FullName
+  $raw=Get-Content -LiteralPath $file.FullName -Raw
+  try{$other=[xml]$raw}catch{
+   if($raw.Contains($id) -or $raw.Contains('SDK_HD.Dim.App')){throw "Invalid add-in XML may contain a duplicate KTool registration: $($file.FullName)"}
+   continue
+  }
   foreach($entry in $other.RevitAddIns.AddIn){if(($entry.AddInId -eq $id -or $entry.FullClassName -eq 'SDK_HD.Dim.App') -and $file.FullName -ine $manifest){throw "Duplicate KTool registration: $($file.FullName). Resolve it before installation."}}
  }
 }

@@ -1,8 +1,6 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Media.Imaging;
 using Autodesk.Revit.UI;
 
 namespace SDK_HD.Dim
@@ -17,11 +15,6 @@ namespace SDK_HD.Dim
         private const string PANEL_WATER = "Nước";
         private const string PANEL_UTILITIES = "Tiện ích";
 
-        /// <summary>true: nếu thiếu icon thì hiện hộp thoại liệt kê icon thiếu khi Revit khởi động. Tắt khi đã ổn.</summary>
-        private const bool SHOW_ICON_DIAGNOSTIC = true;
-
-        private static readonly System.Collections.Generic.List<string> _missingIcons =
-            new System.Collections.Generic.List<string>();
         private RibbonPanel paintPanel;
 
         public Result OnStartup(UIControlledApplication application)
@@ -560,18 +553,6 @@ namespace SDK_HD.Dim
             KToolRibbonIcons.Set(cleanupButton, KToolIcon.FileCleanup);
             utilitiesPanel.AddItem(cleanupButton);
 
-            if (SHOW_ICON_DIAGNOSTIC && _missingIcons.Count > 0)
-            {
-                string[] embedded = Assembly.GetExecutingAssembly().GetManifestResourceNames()
-                    .Where(n => n.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
-                    .ToArray();
-                TaskDialog.Show("KTool - Icon",
-                    "Không tìm thấy " + _missingIcons.Count + " icon:" + Environment.NewLine
-                    + string.Join(", ", _missingIcons.Distinct()) + Environment.NewLine + Environment.NewLine
-                    + "PNG đang được nhúng trong DLL: "
-                    + (embedded.Length == 0 ? "(không có file nào)" : string.Join(", ", embedded.Take(30))));
-            }
-
             return Result.Succeeded;
         }
 
@@ -613,62 +594,6 @@ namespace SDK_HD.Dim
             return Result.Succeeded;
         }
 
-        /// <summary>
-        /// Đọc icon PNG: ưu tiên resource nhúng (Embedded Resource); nếu không có thì đọc file
-        /// trong thư mục Icons hoặc cùng thư mục với DLL. Không có icon thì nút vẫn hoạt động.
-        /// </summary>
-        private static BitmapImage LoadIcon(string fileName)
-        {
-            try
-            {
-                Assembly asm = Assembly.GetExecutingAssembly();
-
-                string resName = asm.GetManifestResourceNames()
-                    .FirstOrDefault(n => n.Equals(fileName, StringComparison.OrdinalIgnoreCase)
-                                         || n.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase));
-                if (resName != null)
-                {
-                    using (Stream s = asm.GetManifestResourceStream(resName))
-                    {
-                        return ReadImage(s);
-                    }
-                }
-
-                string dir = Path.GetDirectoryName(asm.Location);
-                string[] candidates =
-                {
-                    Path.Combine(dir, "Icons", fileName),
-                    Path.Combine(dir, fileName)
-                };
-                foreach (string path in candidates)
-                {
-                    if (!File.Exists(path)) continue;
-                    using (FileStream fs = File.OpenRead(path))
-                    {
-                        return ReadImage(fs);
-                    }
-                }
-
-                _missingIcons.Add(fileName);
-                return null;
-            }
-            catch (Exception)
-            {
-                _missingIcons.Add(fileName);
-                return null;
-            }
-        }
-
-        private static BitmapImage ReadImage(Stream s)
-        {
-            BitmapImage img = new BitmapImage();
-            img.BeginInit();
-            img.StreamSource = s;
-            img.CacheOption = BitmapCacheOption.OnLoad;
-            img.EndInit();
-            img.Freeze();
-            return img;
-        }
     }
 }
 
