@@ -1,0 +1,50 @@
+name: Generate KTool ribbon icons
+on:
+  push:
+    branches:
+      - feature/ktool-icon-refresh-20261119
+    paths:
+      - 'tools/KTool_Icon_Generator.py'
+      - '.github/workflows/ktool-generate-icons.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install renderer
+        run: python -m pip install cairosvg pillow
+      - name: Generate 16px and 32px icons
+        run: python tools/KTool_Icon_Generator.py
+      - name: Verify 102 PNG files
+        shell: bash
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          names = sorted(Path('Resources').glob('KTool_*.png'))
+          assert len(names) == 102, f'Expected 102 icons, got {len(names)}'
+          for name in names:
+              size = 16 if name.stem.endswith('_16') else 32
+              with Image.open(name) as img:
+                  assert img.size == (size, size)
+                  assert img.mode == 'RGBA'
+          print('Verified 102 PNG icon files')
+          PY
+      - name: Commit regenerated icons
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- Resources/
+          if ! git diff --cached --quiet; then
+            git commit -m "Replace all 102 Ktool ribbon PNGs with modern icon designs"
+            git push origin HEAD:feature/ktool-icon-refresh-20261119
+          fi
